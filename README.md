@@ -33,6 +33,7 @@ subfoldernya.
 - Mengekspor rekomendasi ke CSV untuk ditinjau sebelum mengambil tindakan.
 - Menggunakan urutan prioritas ukuran file terbesar, lalu jumlah file dengan
   nama sama.
+- Mendukung parameter custom untuk ukuran minimum dan jumlah salinan minimum.
 
 ## Persyaratan
 
@@ -101,6 +102,21 @@ Hasil analisis diekspor dengan separator pipe (`|`) agar aman ketika nama file
 atau path mengandung koma. Jika format CSV sumber berubah, sesuaikan
 `INPUT_SEP` pada cell konfigurasi notebook.
 
+Parameter rekomendasi dapat diubah pada cell konfigurasi:
+
+```python
+MIN_FILE_SIZE_MB = 100
+MIN_COPIES = 2
+ONLY_MATCH_CRITERIA = True
+```
+
+Dengan konfigurasi default, file masuk rekomendasi utama jika ukurannya
+minimal 100 MB **dan** terdapat minimal 2 file dengan nama sama. File tersebut
+tetap dianggap duplikat walaupun berada di folder atau drive yang berbeda,
+karena pengelompokan dilakukan berdasarkan `nama_file`, bukan
+`path_lengkap`. Atur `ONLY_MATCH_CRITERIA = False` untuk menampilkan juga file
+yang hanya memenuhi salah satu kriteria.
+
 Notebook analisis membaca kolom berikut:
 
 | Kolom | Keterangan |
@@ -113,10 +129,10 @@ Notebook analisis membaca kolom berikut:
 ## Skor Prioritas Penghapusan
 
 Skor adalah heuristik untuk membantu review manual, bukan keputusan
-penghapusan otomatis. Urutan tabel rekomendasi tidak hanya berdasarkan skor:
-file diurutkan berdasarkan ukuran terbesar terlebih dahulu, kemudian jumlah
-file dengan nama sama. Dengan aturan ini, file berukuran gigabyte akan muncul
-lebih dulu daripada file JavaScript kecil yang memiliki banyak salinan.
+penghapusan otomatis. Urutan tabel rekomendasi berdasarkan ukuran terbesar
+terlebih dahulu, kemudian jumlah file dengan nama sama. Dengan aturan ini,
+file berukuran gigabyte akan muncul lebih dulu daripada file JavaScript kecil
+yang memiliki banyak salinan.
 
 - `.zip` atau `.rar`: **+80**
 - Archive lain (`.7z`, `.tar`, `.gz`, `.bz2`, `.xz`, `.tgz`, `.tbz2`): **+60**
@@ -128,9 +144,10 @@ Label yang dihasilkan:
 
 | Label | Arti |
 | --- | --- |
-| `TINJAU PRIORITAS TINGGI` | Skor minimal 60; mulai review dari sini |
-| `TINJAU` | Skor 30–59; perlu pemeriksaan manual |
-| `REFERENSI` | Skor di bawah 30; bukan prioritas utama |
+| `TINJAU PRIORITAS TINGGI` | Memenuhi ukuran minimum dan jumlah salinan minimum |
+| `UKURAN BESAR, TUNGGAL` | Ukuran memenuhi batas, tetapi belum ada salinan kedua |
+| `DUPLIKAT KECIL` | Nama duplikat, tetapi ukuran belum memenuhi batas |
+| `REFERENSI` | Tidak memenuhi kriteria utama |
 
 ## Hasil
 

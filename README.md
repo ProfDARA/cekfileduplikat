@@ -31,6 +31,8 @@ subfoldernya.
 - Menghasilkan rekomendasi `TINJAU PRIORITAS TINGGI`, `TINJAU`, atau
   `REFERENSI`.
 - Mengekspor rekomendasi ke CSV untuk ditinjau sebelum mengambil tindakan.
+- Menggunakan urutan prioritas ukuran file terbesar, lalu jumlah file dengan
+  nama sama.
 
 ## Persyaratan
 
@@ -85,7 +87,8 @@ python -m pip install pandas matplotlib jupyter
    OUTPUT_CSV = Path.cwd() / "hasil_deteksi_nama_file_identik.csv"
    ```
 
-   File CSV akan disimpan di folder kerja notebook.
+   File CSV akan disimpan di folder kerja notebook. CSV sumber menggunakan
+   separator koma.
 
 ### 2. Menganalisis CSV
 
@@ -93,6 +96,10 @@ python -m pip install pandas matplotlib jupyter
 2. Buka [`olah_hasil_deteksi_csv.ipynb`](./olah_hasil_deteksi_csv.ipynb).
 3. Jalankan cell secara berurutan.
 4. Tinjau tabel rekomendasi dan visualisasi yang dihasilkan.
+
+Hasil analisis diekspor dengan separator pipe (`|`) agar aman ketika nama file
+atau path mengandung koma. Jika format CSV sumber berubah, sesuaikan
+`INPUT_SEP` pada cell konfigurasi notebook.
 
 Notebook analisis membaca kolom berikut:
 
@@ -106,7 +113,10 @@ Notebook analisis membaca kolom berikut:
 ## Skor Prioritas Penghapusan
 
 Skor adalah heuristik untuk membantu review manual, bukan keputusan
-penghapusan otomatis:
+penghapusan otomatis. Urutan tabel rekomendasi tidak hanya berdasarkan skor:
+file diurutkan berdasarkan ukuran terbesar terlebih dahulu, kemudian jumlah
+file dengan nama sama. Dengan aturan ini, file berukuran gigabyte akan muncul
+lebih dulu daripada file JavaScript kecil yang memiliki banyak salinan.
 
 - `.zip` atau `.rar`: **+80**
 - Archive lain (`.7z`, `.tar`, `.gz`, `.bz2`, `.xz`, `.tgz`, `.tbz2`): **+60**
@@ -145,9 +155,9 @@ Notebook pemindaian menampilkan dua tabel:
 Notebook analisis menghasilkan:
 
 - `rekomendasi_prioritas_penghapusan.csv`: daftar file dengan skor dan label
-  rekomendasi.
+  rekomendasi, dipisahkan dengan `|`.
 - `ringkasan_eda_file_duplikat.csv`: jumlah file berdasarkan label
-  rekomendasi.
+  rekomendasi, dipisahkan dengan `|`.
 
 Semua file CSV diabaikan oleh Git melalui [`.gitignore`](./.gitignore) agar
 hasil pemeriksaan lokal tidak terikut ke repository.
